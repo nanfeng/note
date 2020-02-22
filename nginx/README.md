@@ -42,3 +42,25 @@ upstream ent_h5_server {
     server localhost:8090;
 }
 ```
+
+### 每天生成一个日志文件
+```
+使用linux自带的logrotate工具
+在/etc/logrotate.d/下增加 nginx配置
+
+/httplogs/*.log
+{
+  daily
+  rotate 30
+  missingok
+  dateext
+  notifempty
+  sharedscripts
+  postrotate
+    [ -e /usr/local/nginx/logs/nginx.pid ] && kill -USR1 `cat /usr/local//nginx/logs/nginx.pid`
+  endscript
+}
+
+增加定时任务 crontab -e
+0 0 * * * /usr/sbin/logrotate -vf /etc/logrotate.d/nginx
+```
