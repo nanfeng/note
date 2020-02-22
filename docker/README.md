@@ -53,3 +53,52 @@ NETWORK ID          NAME                DRIVER              SCOPE
 使用
 docker run -d --rm -it --network=ent -p 8090:80 -v /ent_h5/log:/ent_h5/log registry.docker.xxx.com/ent_h5:latest
 ```
+
+### ELK搭建
+```
+准备2台机器a、b
+a（IP任意，与b在同一网络）安装logstash，b（IP为10.10.10.10为例子）
+a服务器执行
+docker pull logstash:7.5.1
+docker run -d --rm -it -v /httplogs:/logs -v /logstash/config/logstash.yml:/usr/share/logstash/config/logstash.yml -v /logstash/pipeline:/usr/share/logstash/pipeline logstash:7.5.1
+
+logstash.yml文件内容：
+http.host: "0.0.0.0"
+xpack.monitoring.elasticsearch.hosts: [ "http://10.10.10.10:9200" ]
+
+pipeline目录下的文件为abc.conf，内容为：
+input {
+    file {
+        path => "/logs/ent_h5_nginx_access.log"
+        codec => "json"
+        type => "ent_h5"
+    }
+}
+filter {
+    mutate {
+        split => [ "upstreamtime", "," ]
+    }
+    mutate {
+        convert => [ "upstreamtime", "float" ]
+    }
+  mutate {
+    rename => { "[host][name]" => "host" }
+  }
+}
+output {
+    elasticsearch {
+        hosts => ["10.10.10.10:9200"]
+        index => "logstash-%{type}-%{+YYYY.MM.dd}"
+    }
+}
+
+#####################
+服务器b执行
+docker pull kibana:7.5.1
+docker pull elasticsearch:7.5.1
+docker network create elk
+docker run -d -p 9200:9200 -p 9300:9300 --network=elk --name elasticsearch -e "discovery.type=single-node" elasticsearch:7.5.1
+docker run -d -p 5601:5601 --network=elk --link elasticsearch -e ELASTICSEARCH_URL=http://elasticsearch:9200 --name kibana kibana:7.5.1
+
+在浏览器中输入http://10.10.10.10:5601/
+```
