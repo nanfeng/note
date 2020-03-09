@@ -41,6 +41,10 @@ https
 ### 分布式
 ```
 raft
+分布式事物
+  两阶段提交
+  三阶段TCC（try，commit，cancel）
+  最大努力通知
 ```
 ### MySQL
 ```
