@@ -1,5 +1,5 @@
 ### Tensorflow笔记__人工智能实践
-tensorflow:1.3.0  
+tensorflow:1.3.0最新版已经2.0了，为什么还用1.3.0版本呢，是因为学习了下面的视频，用2.0版本的会报错  
 https://www.ixigua.com/pseries/6794284888146051596_6794017591590388231/
 
 ### docker环境
